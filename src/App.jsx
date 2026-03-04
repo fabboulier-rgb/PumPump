@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 2. DICTIONNAIRE DE TRADUCTIONS (Enrichi pour le bébé)
+// 2. DICTIONNAIRE DE TRADUCTIONS
 const translations = {
   en: {
     titlePump: "🍼 PumPump", titleFeed: "👶 Baby Meals", subtitle: "Moms, we Love You! 💖",
@@ -29,7 +29,6 @@ const translations = {
     statusApproved: "Approved ✅", statusTemp: "Temporary ❗", statusModalTitle: "Code Status",
     statusModalAppr: "Data is securely backed up in the Cloud.", statusModalTemp: "Data saved locally ONLY. Might be lost.",
     stopMusic: "🔇 Stop music", deleteConfirm: "Delete this session?", themeBtn: "🌙",
-    // Nouveaux textes pour les repas
     tabPump: "🍼 Pumping", tabFeed: "👶 Feeding",
     feedBreast: "🤱 Breast", feedPumped: "🍼 Pumped Milk", feedFormula: "🥛 Formula",
     feedHowMuch: "How much did baby drink?", feedHistory: "🍽️ Feeding History",
@@ -45,7 +44,6 @@ const translations = {
     statusApproved: "Approuvé ✅", statusTemp: "Temporaire ❗", statusModalTitle: "Statut du Code",
     statusModalAppr: "Données sauvegardées de manière sécurisée dans le Cloud.", statusModalTemp: "Données locales uniquement. Risque de perte.",
     stopMusic: "🔇 Arrêter la musique", deleteConfirm: "Supprimer définitivement ?", themeBtn: "☀️",
-    // Nouveaux textes pour les repas
     tabPump: "🍼 Tirage", tabFeed: "👶 Repas",
     feedBreast: "🤱 Au sein", feedPumped: "🍼 Lait tiré", feedFormula: "🥛 Lait artificiel",
     feedHowMuch: "Combien a bu bébé ?", feedHistory: "🍽️ Historique des Repas",
@@ -149,7 +147,6 @@ function PumpingTracker({ userCode, isApproved, lang, t, darkMode }) {
     const maxV = Math.max(...Object.values(dt), 100);
     return days.map(d => ({ day:d, total:dt[d], height:Math.round((dt[d]/maxV)*100) }));
   }, [history]);
-
   return (
     <div className="flex flex-col items-center w-full max-w-sm mx-auto pb-24">
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
@@ -242,7 +239,6 @@ function PumpingTracker({ userCode, isApproved, lang, t, darkMode }) {
     </div>
   );
 }
-
 
 // ==========================================
 // COMPOSANT 2 : REPAS BÉBÉ (FeedingTracker)
@@ -402,7 +398,6 @@ function FeedingTracker({ userCode, isApproved, lang, t, darkMode }) {
     </div>
   );
 }
-
 // ==========================================
 // COMPOSANT 3 : L'APPLICATION PRINCIPALE
 // ==========================================
@@ -467,14 +462,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-indigo-950 flex flex-col font-sans text-slate-700 dark:text-slate-200 relative overflow-x-hidden transition-colors duration-500">
       
-      {/* BARRE DU HAUT */}
+      {/* BARRE DU HAUT (Nettoyée de la lune) */}
       <div className="absolute top-6 left-4 z-10">
         <button onClick={() => setShowStatusModal(true)} className={`flex items-center gap-1 font-bold px-3 py-1 rounded-full shadow-sm text-xs ${isApproved ? 'bg-teal-50 text-teal-600' : 'bg-orange-100 text-orange-600'}`}>
           <span className="uppercase opacity-70 mr-1">{userCode}</span>{isApproved ? t.statusApproved : t.statusTemp}
         </button>
       </div>
       <div className="absolute top-6 right-4 flex gap-2 z-10">
-        <button onClick={toggleDarkMode} className="text-lg bg-white dark:bg-slate-800 px-2 py-1 rounded-full">{t.themeBtn}</button>
         <button onClick={handleLogout} className="font-bold text-slate-400 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1 rounded-full text-sm">{t.logout}</button>
         <button onClick={toggleLang} className="font-bold text-slate-400 dark:text-slate-300 bg-white dark:bg-slate-800 px-3 py-1 rounded-full text-sm">{t.langBtn}</button>
       </div>
@@ -487,20 +481,31 @@ export default function App() {
         }
       </div>
 
-      {/* BARRE DE NAVIGATION EN BAS (FIXE) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl border-t border-slate-100 dark:border-slate-800 z-40 px-6 py-4 pb-8 flex justify-center gap-4">
-        <button 
-          onClick={() => setActiveTab('pump')}
-          className={`flex-1 py-3 px-4 rounded-2xl font-bold text-lg flex items-center justify-center transition-all ${activeTab === 'pump' ? 'bg-rose-100 text-rose-500 shadow-inner' : 'bg-transparent text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-        >
-          {t.tabPump}
-        </button>
-        <button 
-          onClick={() => setActiveTab('feed')}
-          className={`flex-1 py-3 px-4 rounded-2xl font-bold text-lg flex items-center justify-center transition-all ${activeTab === 'feed' ? 'bg-blue-100 text-blue-500 shadow-inner' : 'bg-transparent text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-        >
-          {t.tabFeed}
-        </button>
+      {/* BARRE DE NAVIGATION EN BAS (FIXE avec Sélecteur) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-3xl border-t border-slate-100 dark:border-slate-800 z-40 px-6 pt-4 pb-8 flex flex-col items-center gap-3">
+        
+        {/* Les deux gros boutons d'onglets */}
+        <div className="flex w-full justify-center gap-4">
+          <button 
+            onClick={() => setActiveTab('pump')}
+            className={`flex-1 py-3 px-4 rounded-2xl font-bold text-lg flex items-center justify-center transition-all ${activeTab === 'pump' ? 'bg-rose-100 text-rose-500 shadow-inner' : 'bg-transparent text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+          >
+            {t.tabPump}
+          </button>
+          <button 
+            onClick={() => setActiveTab('feed')}
+            className={`flex-1 py-3 px-4 rounded-2xl font-bold text-lg flex items-center justify-center transition-all ${activeTab === 'feed' ? 'bg-blue-100 text-blue-500 shadow-inner' : 'bg-transparent text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+          >
+            {t.tabFeed}
+          </button>
+        </div>
+
+        {/* LE NOUVEAU SÉLECTEUR DISCRET */}
+        <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-full shadow-inner scale-90">
+          <button onClick={() => { if (darkMode) toggleDarkMode(); }} className={`px-4 py-1 rounded-full text-base transition-all ${!darkMode ? 'bg-white shadow-sm' : 'opacity-40'}`}>☀️</button>
+          <button onClick={() => { if (!darkMode) toggleDarkMode(); }} className={`px-4 py-1 rounded-full text-base transition-all ${darkMode ? 'bg-indigo-900 shadow-sm' : 'opacity-40'}`}>🌙</button>
+        </div>
+
       </div>
 
       {/* MODALE STATUT CODE */}
@@ -511,7 +516,7 @@ export default function App() {
             <div className={`p-4 rounded-2xl mb-6 ${isApproved ? 'bg-teal-50 text-teal-700' : 'bg-orange-50 text-orange-700'}`}>
               <span className="text-3xl block mb-2">{isApproved ? '✅' : '❗'}</span><p className="font-medium text-sm">{isApproved ? t.statusModalAppr : t.statusModalTemp}</p>
             </div>
-            <button onClick={() => setShowStatusModal(false)} className="w-full bg-slate-100 dark:bg-slate-800 py-3 rounded-xl font-bold">OK</button>
+            <button onClick={() => setShowStatusModal(false)} className="w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">OK</button>
           </div>
         </div>
       )}
